@@ -126,6 +126,12 @@ class Bitswap {
         `block:${block.cid.buffer.toString()}`,
         block
       )
+      this.network.provide(block.cid, (err) => {
+        if (err) {
+          log.error('Failed to provide: %s', err.message)
+        }
+      })
+
       this.engine.receivedBlocks([block.cid])
       callback()
     })
@@ -198,7 +204,14 @@ class Bitswap {
       }
 
       addListener()
-      this.wm.wantBlocks([cid])
+
+      this.network.findAndConnect(cid, CONSTANTS.maxProvidersPerRequest, (err) => {
+        if (err) {
+          return callback(err)
+        }
+
+        this.wm.wantBlocks([cid])
+      })
     })
   }
 
@@ -269,6 +282,11 @@ class Bitswap {
             block
           )
           this.engine.receivedBlocks([block.cid])
+          this.network.provide(block.cid, (err) => {
+            if (err) {
+              log.error('Failed to provide: %s', err.message)
+            }
+          })
         })
         cb()
       })

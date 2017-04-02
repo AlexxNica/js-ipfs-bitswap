@@ -3,7 +3,8 @@
 const debug = require('debug')
 const lp = require('pull-length-prefixed')
 const pull = require('pull-stream')
-const setImmediate = require('async/setImmediate')
+const waterfall = require('async/waterfall')
+const each = require('async/each')
 
 const Message = require('../../types/message')
 const CONSTANTS = require('../../constants')
@@ -99,24 +100,39 @@ class Network {
     this.bitswap._onPeerDisconnected(peerInfo.id)
   }
 
-  // Connect to the given peer
   connectTo (peerId, callback) {
-    const done = (err) => setImmediate(() => callback(err))
-
     if (!this._running) {
-      return done(new Error('No running network'))
+      return callback(new Error('No running network'))
     }
 
-    // NOTE: For now, all this does is ensure that we are
-    // connected. Once we have Peer Routing, we will be able
-    // to find the Peer
-    if (this.libp2p.swarm.muxedConns[peerId.toB58String()]) {
-      done()
-    } else {
-      done(new Error('Could not connect to peer with peerId:', peerId.toB58String()))
-    }
+    this.libp2p.dial(peerId, (err, conn) => {
+      if (err) {
+        return callback(err)
+      }
+
+      pull(pull.empty, conn)
+      callback()
+    })
   }
 
+  findProviders (cid, maxProviders, callback) {
+    this.libp2p.dht.findNProviders(cid, CONSTANTS.providerRequestTimeout, maxProviders, callback)
+  }
+
+  findAndConnect (cid, maxProviders, callback) {
+    waterfall([
+      (cb) => this.findProviders(cid, maxProviders, cb),
+      (provs, cb) => each(provs, (p, cb) => {
+        this.connectTo(p, cb)
+      })
+    ], callback)
+  }
+
+  provide (cid, callback) {
+    this.libp2p.dht.provide()
+  }
+
+  // Connect to the given peer
   // Send the given msg (instance of Message) to the given peer
   sendMessage (peerId, msg, callback) {
     if (!this._running) {
@@ -125,14 +141,8 @@ class Network {
 
     const stringId = peerId.toB58String()
     log('sendMessage to %s', stringId, msg)
-    let peerInfo
-    try {
-      peerInfo = this.peerBook.get(stringId)
-    } catch (err) {
-      return callback(err)
-    }
 
-    this._dialPeer(peerInfo, (err, conn, protocol) => {
+    this._dialPeer(peerId, (err, conn, protocol) => {
       if (err) {
         return callback(err)
       }
@@ -157,14 +167,14 @@ class Network {
     })
   }
 
-  _dialPeer (peerInfo, callback) {
+  _dialPeer (peer, callback) {
     // dialByPeerInfo throws if no network is there
     try {
      // Attempt Bitswap 1.1.0
-      this.libp2p.dial(peerInfo, BITSWAP110, (err, conn) => {
+      this.libp2p.dial(peer, BITSWAP110, (err, conn) => {
         if (err) {
           // Attempt Bitswap 1.0.0
-          this.libp2p.dial(peerInfo, BITSWAP100, (err, conn) => {
+          this.libp2p.dial(peer, BITSWAP100, (err, conn) => {
             if (err) {
               return callback(err)
             }
