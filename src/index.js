@@ -205,13 +205,9 @@ class Bitswap {
 
       addListener()
 
-      this.network.findAndConnect(cid, CONSTANTS.maxProvidersPerRequest, (err) => {
-        if (err) {
-          return callback(err)
-        }
+      this.wm.wantBlocks([cid])
 
-        this.wm.wantBlocks([cid])
-      })
+      this.network.findAndConnect(cid, CONSTANTS.maxProvidersPerRequest, callback)
     })
   }
 
