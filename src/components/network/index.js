@@ -90,6 +90,7 @@ class Network {
     if (!this._running) {
       return
     }
+
     this.bitswap._onPeerConnected(peerInfo.id)
   }
 
@@ -97,6 +98,7 @@ class Network {
     if (!this._running) {
       return
     }
+
     this.bitswap._onPeerDisconnected(peerInfo.id)
   }
 
@@ -105,14 +107,7 @@ class Network {
       return callback(new Error('No running network'))
     }
 
-    this.libp2p.dial(peerId, (err, conn) => {
-      if (err) {
-        return callback(err)
-      }
-
-      pull(pull.empty, conn)
-      callback()
-    })
+    this.libp2p.dial(peerId, callback)
   }
 
   findProviders (cid, maxProviders, callback) {
