@@ -61,7 +61,7 @@ module.exports = (repo) => {
     before((done) => {
       parallel([
         (cb) => repo.create('hello', cb),
-        (cb) => map(_.range(12), (i, cb) => makeBlock(cb), cb),
+        (cb) => map(_.range(15), (i, cb) => makeBlock(cb), cb),
         (cb) => map(_.range(2), (i, cb) => PeerId.create(cb), cb)
       ], (err, results) => {
         if (err) {
@@ -201,6 +201,29 @@ module.exports = (repo) => {
       })
 
       it('blocks exist locally', (done) => {
+        const b1 = blocks[3]
+        const b2 = blocks[14]
+        const b3 = blocks[13]
+
+        store.putMany([b1, b2, b3], (err) => {
+          expect(err).to.not.exist()
+
+          const book = new PeerBook()
+          const bs = new Bitswap(libp2pMock, store, book)
+
+          bs.getMany([
+            b1.cid,
+            b2.cid,
+            b3.cid
+          ], (err, res) => {
+            expect(err).to.not.exist()
+            expect(res).to.be.eql([b1, b2, b3])
+            done()
+          })
+        })
+      })
+
+      it('getMany', (done) => {
         const b1 = blocks[5]
         const b2 = blocks[6]
         const b3 = blocks[7]
