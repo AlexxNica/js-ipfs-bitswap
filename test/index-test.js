@@ -38,6 +38,14 @@ const hasBlocks = (msg, store, cb) => {
 module.exports = (repo) => {
   const libp2pMock = {
     handle: function () {},
+    contentRouting: {
+      provide: function (cid, callback) {
+        callback()
+      },
+      findProviders: function (cid, timeout, callback) {
+        callback()
+      }
+    },
     on () {},
     swarm: {
       muxedConns: {},
@@ -256,7 +264,13 @@ module.exports = (repo) => {
             }
           },
           start () {},
-          stop () {}
+          stop () {},
+          findAndConnect (cid, maxProviders, callback) {
+            setImmediate(() => callback)
+          },
+          provide (cid, callback) {
+            setImmediate(() => callback)
+          }
         }
         const n2 = {
           connectTo (id, cb) {
@@ -274,7 +288,13 @@ module.exports = (repo) => {
             }
           },
           start () {},
-          stop () {}
+          stop () {},
+          findAndConnect (cid, maxProviders, callback) {
+            setImmediate(() => callback)
+          },
+          provide (cid, callback) {
+            setImmediate(() => callback)
+          }
         }
         bs1 = new Bitswap(libp2pMock, store, new PeerBook())
         utils.applyNetwork(bs1, n1)

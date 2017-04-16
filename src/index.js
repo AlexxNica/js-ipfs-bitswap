@@ -163,7 +163,12 @@ class Bitswap {
         return callback(err)
       }
 
-      callback(null, blocks[0])
+      if (blocks && blocks.length > 0) {
+        callback(null, blocks[0])
+      } else {
+        // when a unwant happens
+        callback()
+      }
     })
   }
 
@@ -265,16 +270,16 @@ class Bitswap {
         })
       }, cb),
       (cb) => {
-        addListeners(missing)
-        this.wm.wantBlocks(missing)
+        if (missing.length > 0) {
+          addListeners(missing)
+          this.wm.wantBlocks(missing)
 
-        this.network.findAndConnect(cids[0], CONSTANTS.maxProvidersPerRequest, cb)
+          this.network.findAndConnect(cids[0], CONSTANTS.maxProvidersPerRequest, cb)
+        } else {
+          cb()
+        }
       }
-    ], (err) => {
-      if (err) {
-        callback(err)
-      }
-    })
+    ], finish)
   }
 
   // removes the given cids from the wantlist independent of any ref counts
