@@ -42,7 +42,7 @@
     "chai": "^3.5.0",
     "dirty-chai": "^1.2.2",
     "ipfs-repo": "~0.13.0",
-    "libp2p-ipfs-nodejs": "~0.23.0",
+    "libp2p-ipfs-nodejs": "~0.25.0",
     "lodash": "^4.17.4",
     "multiaddr": "^2.3.0",
     "ncp": "^2.0.0",
@@ -69,7 +69,7 @@
     "multihashing-async": "^0.4.5",
     "protocol-buffers": "^3.2.1",
     "pull-defer": "^0.2.2",
-    "pull-length-prefixed": "^1.2.0",
+    "pull-length-prefixed": "^1.2.1",
     "pull-pushable": "^2.0.1",
     "pull-stream": "^3.5.0",
     "varint-decoder": "^0.1.1"
