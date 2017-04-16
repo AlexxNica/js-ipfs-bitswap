@@ -117,14 +117,12 @@ class Network {
   findAndConnect (cid, maxProviders, callback) {
     waterfall([
       (cb) => this.findProviders(cid, maxProviders, cb),
-      (provs, cb) => each(provs, (p, cb) => {
-        this.connectTo(p, cb)
-      })
+      (provs, cb) => each(provs, (p, cb) => this.connectTo(p, cb))
     ], callback)
   }
 
   provide (cid, callback) {
-    this.libp2p.dht.provide()
+    this.libp2p.contentRouting.provide(cid, callback)
   }
 
   // Connect to the given peer
