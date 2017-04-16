@@ -7,6 +7,7 @@ const EventEmitter = require('events').EventEmitter
 const debug = require('debug')
 const series = require('async/series')
 const map = require('async/map')
+const once = require('once')
 
 const CONSTANTS = require('./constants')
 const WantManager = require('./components/want-manager')
@@ -181,6 +182,7 @@ class Bitswap {
    * @returns {void}
    */
   getMany (cids, callback) {
+    callback = once(callback)
     const unwantListeners = {}
     const blockListeners = {}
     const unwantEvent = (c) => `unwant:${c}`
